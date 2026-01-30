@@ -93,7 +93,7 @@ async function handleEndOfCallReport(message: VapiEndOfCallReportMessage) {
     // Artifact data
     transcript: artifact?.transcript ?? call.artifact?.transcript,
     messages: artifact?.messages ?? call.artifact?.messages,
-    recordingUrl: artifact?.recording?.url ?? call.artifact?.recording?.url,
+    recordingUrl: artifact?.recording ?? call.artifact?.recording,
 
     // Cost data
     cost: call.cost,
