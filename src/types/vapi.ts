@@ -70,7 +70,7 @@ export interface VapiMessage {
 
 export interface VapiArtifact {
   transcript?: string;
-  recording?: VapiRecording;
+  recording?: string;
   messages?: VapiMessage[];
   messagesOpenAIFormatted?: Array<{ role: string; content: string }>;
   stereoRecordingUrl?: string;
