@@ -1,13 +1,8 @@
 import type { Context } from "hono";
-import {
-  createCall,
-  getCallByVapiId,
-} from "../db/queries.js";
+import { createCall } from "../db/queries.js";
 import type {
   VapiWebhookPayload,
   VapiEndOfCallReportMessage,
-  VapiStatusUpdateMessage,
-  VapiAssistantRequestMessage,
   VapiCall,
 } from "../types/vapi.js";
 
@@ -125,62 +120,7 @@ async function handleEndOfCallReport(message: VapiEndOfCallReportMessage) {
 }
 
 /**
- * Handle status-update webhook
- * Sent during call lifecycle (queued, ringing, in-progress, ended)
- */
-async function handleStatusUpdate(message: VapiStatusUpdateMessage) {
-  console.log(`[Webhook] Status update: ${message.status} for call ${message.call.id}`);
-
-  // Optionally track status changes
-  if (message.status === "in-progress") {
-    console.log(`[Webhook] Call ${message.call.id} is now in progress`);
-  }
-
-  return { success: true, status: message.status };
-}
-
-/**
- * Handle assistant-request webhook
- * This is called for inbound calls to dynamically assign an assistant
- */
-async function handleAssistantRequest(message: VapiAssistantRequestMessage) {
-  console.log(`[Webhook] Assistant request for call ${message.call.id}`);
-
-  // For agent-on-agent calls, we return the configured assistant
-  // The assistant ID should be configured on the phone number in Vapi dashboard
-  // This handler is here if you need dynamic assistant selection
-
-  // You can return a specific assistantId or a full assistant object
-  const assistantId = process.env.ASSISTANT_B_ID;
-
-  if (assistantId) {
-    return { assistantId };
-  }
-
-  // Or return a transient assistant configuration
-  return {
-    assistant: {
-      firstMessage: "Hello, I'm ready to have a conversation with you.",
-      model: {
-        provider: "openai",
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful AI assistant having a phone conversation. Be natural, engaging, and concise.",
-          },
-        ],
-      },
-      voice: {
-        provider: "11labs",
-        voiceId: "21m00Tcm4TlvDq8ikWAM", // Rachel
-      },
-    },
-  };
-}
-
-/**
- * Main webhook handler
+ * Main webhook handler - processes end-of-call reports from Vapi
  */
 export async function handleVapiWebhook(c: Context) {
   try {
@@ -189,24 +129,13 @@ export async function handleVapiWebhook(c: Context) {
 
     console.log(`[Webhook] Received ${message.type} event`);
 
-    switch (message.type) {
-      case "end-of-call-report":
-        const endOfCallResult = await handleEndOfCallReport(message);
-        return c.json(endOfCallResult);
-
-      case "status-update":
-        const statusResult = await handleStatusUpdate(message);
-        return c.json(statusResult);
-
-      case "assistant-request":
-        const assistantResult = await handleAssistantRequest(message);
-        return c.json(assistantResult);
-
-      default:
-        // Handle other message types (transcript, tool-calls, etc.)
-        console.log(`[Webhook] Unhandled message type: ${(message as any).type}`);
-        return c.json({ success: true, message: "Event received" });
+    if (message.type !== "end-of-call-report") {
+      console.log(`[Webhook] Ignoring non end-of-call-report event: ${message.type}`);
+      return c.json({ success: true, message: "Event ignored" });
     }
+
+    const result = await handleEndOfCallReport(message);
+    return c.json(result);
   } catch (error) {
     console.error("[Webhook] Error processing webhook:", error);
     return c.json({ error: "Internal server error" }, 500);

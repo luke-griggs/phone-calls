@@ -38,19 +38,12 @@ async function initiateCall(
       number: PHONE_B_NUMBER!,
     },
     assistantOverrides: {
-      model: {
-        provider: "openai",
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: topic.promptA,
-          },
-        ],
+      variableValues: {
+        promptA: topic.promptA,
       },
-      firstMessage: topic.firstMessageA,
     },
     metadata: {
+      // Metadata for database tracking
       topic: topic.topic,
       experimentId: experimentId,
       agentRole: "A",

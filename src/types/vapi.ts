@@ -26,6 +26,11 @@ export interface VapiAssistant {
   };
 }
 
+// Assistant overrides can include variableValues for dynamic template variables
+export interface VapiAssistantOverrides extends Partial<VapiAssistant> {
+  variableValues?: Record<string, string>;
+}
+
 export interface VapiCustomer {
   number: string;
   name?: string;
@@ -84,7 +89,7 @@ export interface VapiCall {
   endedAt?: string;
   assistant?: VapiAssistant;
   assistantId?: string;
-  assistantOverrides?: Partial<VapiAssistant>;
+  assistantOverrides?: VapiAssistantOverrides;
   customer?: VapiCustomer;
   phoneNumber?: VapiPhoneNumber;
   phoneNumberId?: string;
@@ -138,7 +143,7 @@ export interface CreateCallRequest {
   phoneNumberId?: string;
   assistantId?: string;
   assistant?: Partial<VapiAssistant>;
-  assistantOverrides?: Partial<VapiAssistant>;
+  assistantOverrides?: VapiAssistantOverrides;
   customer?: {
     number: string;
     name?: string;
