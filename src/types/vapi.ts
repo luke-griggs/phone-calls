@@ -103,6 +103,7 @@ export interface VapiEndOfCallReportMessage {
   call: VapiCall;
   artifact?: VapiArtifact;
   endedReason?: string;
+  durationSeconds?: number;
   phoneNumber?: VapiPhoneNumber;
   customer?: VapiCustomer;
   timestamp?: string;

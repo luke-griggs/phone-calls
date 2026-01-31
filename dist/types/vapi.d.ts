@@ -94,9 +94,16 @@ export interface VapiEndOfCallReportMessage {
     call: VapiCall;
     artifact?: VapiArtifact;
     endedReason?: string;
+    durationSeconds?: number;
+    recordingUrl?: string;
     phoneNumber?: VapiPhoneNumber;
     customer?: VapiCustomer;
     timestamp?: string;
+    analysis?: {
+        summary?: string;
+        structuredData?: Record<string, unknown>;
+        successEvaluation?: string;
+    };
 }
 export interface VapiStatusUpdateMessage {
     type: "status-update";

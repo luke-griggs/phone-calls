@@ -6,16 +6,6 @@ import type {
 } from "../types/vapi.js";
 
 /**
- * Calculate duration from start and end times
- */
-function calculateDuration(startedAt?: string, endedAt?: string): number | null {
-  if (!startedAt || !endedAt) return null;
-  const start = new Date(startedAt).getTime();
-  const end = new Date(endedAt).getTime();
-  return Math.round((end - start) / 1000);
-}
-
-/**
  * Handle end-of-call-report webhook
  * This is sent when a call ends and contains all the call data
  */
@@ -23,20 +13,24 @@ async function handleEndOfCallReport(message: VapiEndOfCallReportMessage) {
   const { call, artifact } = message;
 
   console.log(`[Webhook] End of call report for call ${call.id}`);
-  console.log(`[Webhook] Ended reason: ${call.endedReason ?? message.endedReason}`);
+  console.log(`[Webhook] Ended reason: ${message.endedReason}`);
 
-  // Calculate duration
-  const durationSeconds = calculateDuration(call.startedAt, call.endedAt);
+  // Get duration directly from message (provided by VAPI)
+  const durationSeconds = message.durationSeconds;
 
-  // Extract voice provider
+  // Extract voice provider from assistant config
   const voiceProvider = call.assistant?.voice?.provider;
+
+  // Get transcript and recording URL from artifact
+  const transcript = artifact?.transcript ?? call.artifact?.transcript;
+  const recordingUrl = artifact?.recording ?? call.artifact?.recording;
 
   const callData = {
     vapiCallId: call.id,
-    durationSeconds: durationSeconds ?? undefined,
+    durationSeconds: durationSeconds,
     voiceProvider: voiceProvider,
-    transcript: artifact?.transcript ?? call.artifact?.transcript,
-    recordingUrl: artifact?.recording ?? call.artifact?.recording,
+    transcript: transcript,
+    recordingUrl: recordingUrl,
     rawPayload: message,
   };
 
