@@ -24,6 +24,9 @@ export interface VapiAssistant {
         language?: string;
     };
 }
+export interface VapiAssistantOverrides extends Partial<VapiAssistant> {
+    variableValues?: Record<string, string>;
+}
 export interface VapiCustomer {
     number: string;
     name?: string;
@@ -58,7 +61,7 @@ export interface VapiMessage {
 }
 export interface VapiArtifact {
     transcript?: string;
-    recording?: VapiRecording;
+    recording?: string;
     messages?: VapiMessage[];
     messagesOpenAIFormatted?: Array<{
         role: string;
@@ -79,7 +82,7 @@ export interface VapiCall {
     endedAt?: string;
     assistant?: VapiAssistant;
     assistantId?: string;
-    assistantOverrides?: Partial<VapiAssistant>;
+    assistantOverrides?: VapiAssistantOverrides;
     customer?: VapiCustomer;
     phoneNumber?: VapiPhoneNumber;
     phoneNumberId?: string;
@@ -120,7 +123,7 @@ export interface CreateCallRequest {
     phoneNumberId?: string;
     assistantId?: string;
     assistant?: Partial<VapiAssistant>;
-    assistantOverrides?: Partial<VapiAssistant>;
+    assistantOverrides?: VapiAssistantOverrides;
     customer?: {
         number: string;
         name?: string;

@@ -1,13 +1,12 @@
 {
-  "name": "vapi-agent-conversations",
+  "name": "vapi-human-conversations",
   "version": "1.0.0",
-  "description": "Vapi agent-on-agent phone conversation data collection system",
+  "description": "Vapi human conversation tracking system",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server/index.ts",
     "start": "node dist/server/index.js",
     "build": "tsc",
-    "orchestrate": "tsx src/orchestrator/index.ts",
     "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
