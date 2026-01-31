@@ -237,7 +237,7 @@ export const topics: TopicConfig[] = [
     topic: "shipping_delay",
     category: "customer_service",
     description: "Customer inquiring about a delayed shipment",
-    promptA: "You ordered a birthday gift 2 weeks ago with express shipping and the birthday is tomorrow but the tracking still shows 'in transit'. You're upset because you paid extra for fast shipping. Order number is ORD-789456.",
+    promptA: "You ordered a birthday gift 2 weeks ago with express shipping and the birthday is tomorrow but the tracking still shows 'in transit'. You're upset because you paid extra for fast shipping. Order number is 789456.",
     promptB: "You are a shipping support agent. Help track packages and resolve delivery issues. You can offer refunds on shipping costs, expedited reshipping, or store credit for delays. Be empathetic and solution-oriented.",
     firstMessageA: "I'm calling about an order that should have arrived days ago but hasn't.",
   },

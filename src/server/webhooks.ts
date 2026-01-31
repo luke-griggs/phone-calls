@@ -1,32 +1,9 @@
 import type { Context } from "hono";
-import { createCall } from "../db/queries.js";
+import { createHumanCall } from "../db/queries.js";
 import type {
   VapiWebhookPayload,
   VapiEndOfCallReportMessage,
-  VapiCall,
 } from "../types/vapi.js";
-
-/**
- * Extract voice model info from a Vapi call object
- */
-function extractVoiceInfo(call: VapiCall) {
-  const voice = call.assistant?.voice;
-  return {
-    voiceProvider: voice?.provider,
-    voiceId: voice?.voiceId,
-  };
-}
-
-/**
- * Extract model info from a Vapi call object
- */
-function extractModelInfo(call: VapiCall) {
-  const model = call.assistant?.model;
-  return {
-    modelProvider: model?.provider,
-    model: model?.model,
-  };
-}
 
 /**
  * Calculate duration from start and end times
@@ -48,69 +25,26 @@ async function handleEndOfCallReport(message: VapiEndOfCallReportMessage) {
   console.log(`[Webhook] End of call report for call ${call.id}`);
   console.log(`[Webhook] Ended reason: ${call.endedReason ?? message.endedReason}`);
 
-  // Extract voice and model info
-  const voiceInfo = extractVoiceInfo(call);
-  const modelInfo = extractModelInfo(call);
-
-  // Get metadata (topic, experimentId) that we set when initiating the call
-  const metadata = call.metadata ?? {};
-  const topic = metadata.topic as string | undefined;
-  const experimentId = metadata.experimentId as string | undefined;
-  const agentRole = metadata.agentRole as string | undefined; // 'A' or 'B'
-
   // Calculate duration
   const durationSeconds = calculateDuration(call.startedAt, call.endedAt);
 
-  // Prepare call data based on which agent this report is for
-  const isAgentA = agentRole === "A" || call.type === "outboundPhoneCall";
+  // Extract voice provider
+  const voiceProvider = call.assistant?.voice?.provider;
 
   const callData = {
     vapiCallId: call.id,
-    experimentId: experimentId,
-    topic: topic,
-    
-    // Agent info - set based on which agent this report is for
-    ...(isAgentA ? {
-      agentAAssistantId: call.assistantId ?? call.assistant?.id,
-      agentAVoiceProvider: voiceInfo.voiceProvider,
-      agentAVoiceId: voiceInfo.voiceId,
-      agentAModelProvider: modelInfo.modelProvider,
-      agentAModel: modelInfo.model,
-    } : {
-      agentBAssistantId: call.assistantId ?? call.assistant?.id,
-      agentBVoiceProvider: voiceInfo.voiceProvider,
-      agentBVoiceId: voiceInfo.voiceId,
-      agentBModelProvider: modelInfo.modelProvider,
-      agentBModel: modelInfo.model,
-    }),
-
-    status: call.status ?? "ended",
-    endedReason: call.endedReason ?? message.endedReason,
-    startedAt: call.startedAt ? new Date(call.startedAt) : undefined,
-    endedAt: call.endedAt ? new Date(call.endedAt) : undefined,
     durationSeconds: durationSeconds ?? undefined,
-
-    // Artifact data
+    voiceProvider: voiceProvider,
     transcript: artifact?.transcript ?? call.artifact?.transcript,
-    messages: artifact?.messages ?? call.artifact?.messages,
     recordingUrl: artifact?.recording ?? call.artifact?.recording,
-
-    // Cost data
-    cost: call.cost,
-    costBreakdown: call.costBreakdown,
-
-    // Store raw payload for debugging
     rawPayload: message,
   };
 
   try {
-    const savedCall = await createCall(callData);
+    const savedCall = await createHumanCall(callData);
     console.log(`[Webhook] Call data saved to database: ${savedCall.id}`);
-
-    // Log key metrics
-    console.log(`[Webhook] Voice: ${voiceInfo.voiceProvider}/${voiceInfo.voiceId}`);
-    console.log(`[Webhook] Model: ${modelInfo.modelProvider}/${modelInfo.model}`);
-    console.log(`[Webhook] Duration: ${durationSeconds}s, Cost: $${call.cost?.toFixed(4)}`);
+    console.log(`[Webhook] Voice provider: ${voiceProvider}`);
+    console.log(`[Webhook] Duration: ${durationSeconds}s`);
 
     return { success: true, callId: savedCall.id };
   } catch (error) {
