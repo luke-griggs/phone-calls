@@ -68,9 +68,18 @@ export interface VapiMessage {
   secondsFromStart?: number;
 }
 
+export interface VapiRecordingUrls {
+  stereoUrl?: string;
+  mono?: {
+    combinedUrl?: string;
+    assistantUrl?: string;
+    customerUrl?: string;
+  };
+}
+
 export interface VapiArtifact {
   transcript?: string;
-  recording?: string;
+  recording?: string | VapiRecordingUrls;
   messages?: VapiMessage[];
   messagesOpenAIFormatted?: Array<{ role: string; content: string }>;
   stereoRecordingUrl?: string;

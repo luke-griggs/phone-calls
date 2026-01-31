@@ -3,6 +3,7 @@ import { createHumanCall } from "../db/queries.js";
 import type {
   VapiWebhookPayload,
   VapiEndOfCallReportMessage,
+  VapiRecordingUrls,
 } from "../types/vapi.js";
 
 /**
@@ -23,7 +24,10 @@ async function handleEndOfCallReport(message: VapiEndOfCallReportMessage) {
 
   // Get transcript and recording URL from artifact
   const transcript = artifact?.transcript ?? call.artifact?.transcript;
-  const recordingUrl = artifact?.recording ?? call.artifact?.recording;
+  const recording = artifact?.recording ?? call.artifact?.recording;
+  const recordingUrl = typeof recording === 'object' && recording !== null 
+    ? (recording as VapiRecordingUrls).stereoUrl 
+    : recording;
 
   const callData = {
     vapiCallId: call.id,

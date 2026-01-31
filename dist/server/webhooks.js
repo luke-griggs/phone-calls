@@ -11,10 +11,12 @@ async function handleEndOfCallReport(message) {
     const durationSeconds = message.durationSeconds;
     // Extract voice provider from assistant config
     const voiceProvider = call.assistant?.voice?.provider;
-    // Get transcript from artifact
+    // Get transcript and recording URL from artifact
     const transcript = artifact?.transcript ?? call.artifact?.transcript;
-    // Get recording URL from message (top-level) or artifact
-    const recordingUrl = message.recordingUrl ?? artifact?.recording ?? call.artifact?.recording;
+    const recording = artifact?.recording ?? call.artifact?.recording;
+    const recordingUrl = typeof recording === 'object' && recording !== null
+        ? recording.stereoUrl
+        : recording;
     const callData = {
         vapiCallId: call.id,
         durationSeconds: durationSeconds,
@@ -28,7 +30,6 @@ async function handleEndOfCallReport(message) {
         console.log(`[Webhook] Call data saved to database: ${savedCall.id}`);
         console.log(`[Webhook] Voice provider: ${voiceProvider}`);
         console.log(`[Webhook] Duration: ${durationSeconds}s`);
-        console.log(`[Webhook] Recording URL: ${recordingUrl}`);
         return { success: true, callId: savedCall.id };
     }
     catch (error) {
